@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <title>Title</title>
+</head>
+
+<style>
+    .btn {
+        background-color: #7FBCBE;
+        border: 0px;
+        border-radius: 50%;
+        padding: 15px;
+        color: white;
+        position: fixed;
+        top: 5%;
+        left: 2%;
+        width: 70px;
+        height: 70px;
+    }
+
+    .content {
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+
+    .btn:active {
+        background-color: #629799;
+    }
+
+    .column-content {
+        background-color: aliceblue;
+        height: fit-content;
+        padding: 10px;
+        display;
+    }
+
+    .card {
+        box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.4);
+        margin: 15px;
+        width: 500px;
+
+        margin-right: auto;
+        margin-left: auto;
+
+        display: grid;
+        grid-template-columns: 20% 80%;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 15px;
+    }
+
+    .card_content {
+        padding: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+    .tag {
+        display: flex;
+        justify-content: center;
+        color: white;
+        font-size: 13px;
+    }
+
+
+    .loading {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        margin: auto;
+        height: 70px;
+    }
+</style>
+
+<body>
+    <button class="btn" id="start">Start</button>
+    <div class="content" id="content">
+        <div id="negative-content">
+        </div>
+        <div id="positive-content">
+        </div>
+    </div>
+    <img id="loading" class="loading" src="D:\Project\Work\TweetsClassifier\saved assets\loading.gif">
+</body>
+
+</html>
+
+<script>
+    $("#start").click(function () {
+
+        $("#loading").show();
+
+        var source = new EventSource("tweet");
+        source.onmessage = function (event) {
+
+            $("#loading").hide();
+
+            try {
+
+                let data = JSON.parse(event.data);
+
+
+                console.log(data);
+
+                let tweetContainer = "<div class='card' id=" + data.data.id + "></div>"
+                let color = "";
+
+
+                if (data.score >= 0) {
+                    $("#positive-content").append(tweetContainer);
+                    color = "#DC816B";
+                } else if (data.score <= 0) {
+                    $("#negative-content").append(tweetContainer);
+                    color = "#6BBBDC";
+                } else {
+                    return;
+                }
+
+
+                let tag = "<div class='tag card_content' style='background-color: " + color + ";'>" + data.score.toFixed(2) + "</div>"
+                let tweet = "<div class='tweet card_content'><p>" + data.data.text + "</p></div>";
+
+
+                $("#" + data.data.id).append(tag);
+                $("#" + data.data.id).append(tweet);
+
+
+            } catch (e) {
+                console.log(e)
+            }
+
+        }
+
+
+    })
+</script>
