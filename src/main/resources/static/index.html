@@ -92,51 +92,63 @@
 </html>
 
 <script>
+    var start = false;
+
     $("#start").click(function () {
 
-        $("#loading").show();
 
-        var source = new EventSource("tweet");
-        source.onmessage = function (event) {
-
-            $("#loading").hide();
-
-            try {
-
-                let data = JSON.parse(event.data);
+        var source = new EventSource("tweets/getTweets");
 
 
-                console.log(data);
+        source.onopen = function () {
+            if (start)
+                source.close();
+            else {
+                console.log(start)
+                start = true;
+                
+                source.onmessage = function (event) {
 
-                let tweetContainer = "<div class='card' id=" + data.data.id + "></div>"
-                let color = "";
+                    // $("#loading").hide();
+
+                    try {
+
+                        let data = JSON.parse(event.data);
 
 
-                if (data.score >= 0) {
-                    $("#positive-content").append(tweetContainer);
-                    color = "#DC816B";
-                } else if (data.score <= 0) {
-                    $("#negative-content").append(tweetContainer);
-                    color = "#6BBBDC";
-                } else {
-                    return;
+                        console.log(data);
+
+                        let tweetContainer = "<div class='card' id=" + data.id + "></div>"
+                        let color = "";
+
+
+                        if (data.score >= 0) {
+                            $("#positive-content").append(tweetContainer);
+                            color = "#DC816B";
+                        } else if (data.score <= 0) {
+                            $("#negative-content").append(tweetContainer);
+                            color = "#6BBBDC";
+                        } else {
+                            return;
+                        }
+
+
+                        let tag = "<div class='tag card_content' style='background-color: " + color + ";'>" + data.score.toFixed(3) + "</div>"
+                        let tweet = "<div class='tweet card_content'><p>" + data.text + "</p></div>";
+
+
+                        $("#" + data.id).append(tag);
+                        $("#" + data.id).append(tweet);
+
+
+                    } catch (e) {
+                        console.log(e)
+                    }
+
                 }
 
-
-                let tag = "<div class='tag card_content' style='background-color: " + color + ";'>" + data.score.toFixed(2) + "</div>"
-                let tweet = "<div class='tweet card_content'><p>" + data.data.text + "</p></div>";
-
-
-                $("#" + data.data.id).append(tag);
-                $("#" + data.data.id).append(tweet);
-
-
-            } catch (e) {
-                console.log(e)
             }
-
         }
-
 
     })
 </script>

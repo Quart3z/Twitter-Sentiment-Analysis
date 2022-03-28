@@ -1,22 +1,21 @@
-package com.example.tweetsclassifier.deeplearning;
+package com.example.twittersentimentanalysis.deeplearning;
 
-import org.deeplearning4j.clustering.cluster.Point;
-import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
-import org.deeplearning4j.clustering.cluster.Cluster;
+import org.deeplearning4j.bagofwords.vectorizer.TfidfVectorizer;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.word2vec.Word2Vec;
+import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.text.sentenceiterator.LineSentenceIterator;
 import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
 import org.deeplearning4j.text.sentenceiterator.SentencePreProcessor;
 import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
-import org.nd4j.common.util.SerializationUtils;
-import org.nd4j.linalg.api.ndarray.INDArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,16 +40,32 @@ public class WordVectorizer {
         w2v = new Word2Vec();
     }
 
-    public static Word2Vec word2VecTraining(boolean isExists) {
+    private static List<String> stopWordsReading() {
+
+        List<String> stopwords = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("saved assets/stopwords"))) {
+
+            String currLine;
+
+            while ((currLine = reader.readLine()) != null) {
+                stopwords.add(currLine);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return stopwords;
+
+    }
+
+    public static Word2Vec train(boolean isExists) {
 
         logger.info("Dataset reading...");
         SentenceIterator iterator = new LineSentenceIterator(new File("saved assets/sentences.txt"));
 
-        iterator.setPreProcessor((SentencePreProcessor) s -> {
-            DataProcessing dataProcessing = new DataProcessing();
-
-            return dataProcessing.stringProcess(s);
-        });
+        iterator.setPreProcessor((SentencePreProcessor) DataProcessing::stringProcess);
 
         TokenizerFactory token = new DefaultTokenizerFactory();
         token.setTokenPreProcessor(new CommonPreprocessor());
@@ -59,10 +74,24 @@ public class WordVectorizer {
 
             logger.info("Reading from file...");
 
-        }
-        else {
+        } else {
 
-            logger.info("Model building...");
+            // Stop words
+            List<String> stopwords = stopWordsReading();
+
+            // tfidf
+            logger.info("TFIDF....");
+            TfidfVectorizer vectorizer = new TfidfVectorizer.Builder()
+                    .setIterator(iterator)
+                    .setTokenizerFactory(token)
+                    .setMinWordFrequency(WORD_FREQUENCY )
+                    .build();
+
+            vectorizer.buildVocab();
+            vectorizer.fit();
+            logger.info("Done create vocab cache");
+
+            logger.info("Word2Vec....");
             w2v = new Word2Vec.Builder()
                     .sampling(SAMPLING)
                     .minWordFrequency(WORD_FREQUENCY)
@@ -74,6 +103,8 @@ public class WordVectorizer {
                     .learningRate(LEARNING_RATE)
                     .tokenizerFactory(token)
                     .batchSize(BATCH_SIZE)
+                    .stopWords(stopwords)
+                    .vocabCache(vectorizer.getVocabCache())
                     .build();
 
         }
@@ -88,7 +119,7 @@ public class WordVectorizer {
         return w2v;
     }
 
-    public static void word2VecTesting(String word1, String word2) {
+    public static void test(String word1, String word2) {
 
         System.out.println(w2v.getWordVectorMatrix(word1));
 
@@ -103,15 +134,16 @@ public class WordVectorizer {
 
     public static void main(String[] args) throws IOException {
 
-        w2v = WordVectorSerializer.loadFullModel("saved assets/w2v.vec");
+        train(false);
+//                test("sayang", "murid");
+//        w2v = WordVectorSerializer.loadFullModel("saved assets/w2v.vec");
 //        Classification.train(w2v);
-        double result = Classification.test(w2v, "tiktok diciptakan untuk memutuskan urat malu umat manusia");
+//        ComputationGraph classifier = ComputationGraph.load(new File("saved assets/classification_model"), true);
+//        double result = Classification.test(w2v, "tiktok diciptakan untuk memutuskan urat malu umat manusia", classifier);
 //
-        System.out.println(result > 0 ? "Positive" : "Negative");
+//        System.out.println(result > 0 ? "Positive" : "Negative");
 
 
-//        word2VecTesting("sayang", "murid");
-//        word2VecTraining(false);
 //        Clustering.clusterTrain(w2v, 2, 30);
 //        List<Point> centroids = SerializationUtils.readObject(new File("saved assets/cluster.dat"));
 ////        TfidfVectorizer.tfidfTrain();

@@ -1,4 +1,4 @@
-package com.example.tweetsclassifier.deeplearning;
+package com.example.twittersentimentanalysis.deeplearning;
 
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
@@ -7,22 +7,23 @@ import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
 import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.deeplearning4j.bagofwords.vectorizer.TfidfVectorizer;
 
 import java.io.File;
 import java.io.IOException;
 
-public class TfidfVectorizer {
+public class WordFrequencyAnalyzer {
 
-    private static final Logger logger = LoggerFactory.getLogger(TfidfVectorizer.class);
+    private static final Logger logger = LoggerFactory.getLogger(WordFrequencyAnalyzer.class);
 
     private static final int WORD_FREQUENCY = 5;
-    // Training
-    public static void tfidfTrain() throws IOException {
+
+    public static void train() throws IOException {
 
         logger.info("Reading from file...");
         SentenceIterator iterator = new LineSentenceIterator(new File("saved assets/sentences.txt"));
 
-        org.deeplearning4j.bagofwords.vectorizer.TfidfVectorizer vectorizer = new org.deeplearning4j.bagofwords.vectorizer.TfidfVectorizer.Builder()
+        TfidfVectorizer vectorizer = new TfidfVectorizer.Builder()
                 .setIterator(iterator)
                 .setTokenizerFactory(new DefaultTokenizerFactory())
                 .setMinWordFrequency(WORD_FREQUENCY )
@@ -37,8 +38,7 @@ public class TfidfVectorizer {
 
     }
 
-    // Testing
-    public static double tfidfTest(VocabCache vocabCache, String word) {
+    public static double test(VocabCache vocabCache, String word) {
 
         logger.info("Initializing tfidfVectorizer");
 

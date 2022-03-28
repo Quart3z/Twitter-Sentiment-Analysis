@@ -1,4 +1,4 @@
-package com.example.tweetsclassifier.application;
+package com.example.twittersentimentanalysis.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

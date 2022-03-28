@@ -1,4 +1,4 @@
-package com.example.tweetsclassifier.application;
+package com.example.twittersentimentanalysis.application;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -23,18 +23,18 @@ public class RuleEditor {
         final String endpoint = "https://api.twitter.com/2/tweets/search/stream/rules";
 
         //bounding_box:[100.085756871 0.773131415201 119.181903925 6.92805288332]
-//        final String body = "{\n" +
-//                "  \"add\": [\n" +
-//                "    {\"value\": \"keluarga -is:retweet -has:mentions -has:media -has:images -has:videos -has:links \"} \n" +
-//                "  ]\n" +
-//                "}";
-
-        // 1506857104136876033
-        final String body = "{\"delete\":  \n" +
-                "   {\"ids\": \n" +
-                "       [\"1506539021669134337\" ]\n" +
-                "   }\n" +
+        final String body = "{\n" +
+                "  \"add\": [\n" +
+                "    {\"value\": \"najib -is:retweet -has:mentions -has:media -has:images -has:videos -has:links \"} \n" +
+                "  ]\n" +
                 "}";
+
+        // 1508292450443730944
+//        final String body = "{\"delete\":  \n" +
+//                "   {\"ids\": \n" +
+//                "       [\"1506857104136876033\" ]\n" +
+//                "   }\n" +
+//                "}";
 
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost request = new HttpPost(endpoint);
@@ -51,13 +51,6 @@ public class RuleEditor {
             while (scanner.hasNext()) {
                 System.out.println(scanner.nextLine());
             }
-
-//            HttpGet get = new HttpGet("https://api.twitter.com/2/tweets/search/stream");
-//            get.setHeader("Authorization", "Bearer " + token);
-//
-//            HttpResponse r = httpClient.execute(get);
-//            System.out.println(EntityUtils.toString(r.getEntity()));
-
 
         } catch (IOException e) {
             e.printStackTrace();

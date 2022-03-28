@@ -1,9 +1,5 @@
-package com.example.tweetsclassifier.deeplearning;
+package com.example.twittersentimentanalysis.deeplearning;
 
-import org.apache.commons.lang.time.StopWatch;
-import org.apache.commons.math3.stat.descriptive.summary.SumOfSquares;
-import org.datavec.api.transform.TransformProcess;
-import org.deeplearning4j.clustering.algorithm.ClusteringAlgorithm;
 import org.deeplearning4j.clustering.algorithm.Distance;
 import org.deeplearning4j.clustering.cluster.Cluster;
 import org.deeplearning4j.clustering.cluster.ClusterSet;
@@ -11,11 +7,9 @@ import org.deeplearning4j.clustering.cluster.Point;
 import org.deeplearning4j.clustering.cluster.PointClassification;
 import org.deeplearning4j.clustering.kmeans.KMeansClustering;
 import org.deeplearning4j.models.word2vec.Word2Vec;
-import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
 import org.nd4j.common.util.SerializationUtils;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
-import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.ops.transforms.Transforms;
 
@@ -24,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Clustering {
 
