@@ -24,6 +24,7 @@ public class DataProcessing {
                 .replaceAll(emojis, "")
                 .replaceAll("\\p{Punct}", "")  // remove punctuation
                 .replaceAll("\\d", "") // remove digit
+                .toLowerCase()
                 .trim();
 
         return text;

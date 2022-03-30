@@ -2,6 +2,7 @@ package com.example.twittersentimentanalysis.deeplearning;
 
 import org.deeplearning4j.clustering.cluster.Point;
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.deeplearning4j.models.word2vec.wordstore.VocabCache;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -20,6 +21,7 @@ public class SentimentAnalysis {
 
     private static final Logger logger = LoggerFactory.getLogger(SentimentAnalysis.class);
 
+    // Clustering
 //    public static double sentimentAnalysis_1(String sentence, Word2Vec w2vModel, List<Point> centroids, VocabCache vocabCache) {
 //
 //        String[] words = sentence.split(" ");
@@ -52,48 +54,35 @@ public class SentimentAnalysis {
     }
 
     public static void main(String[] args) throws IOException {
-//        WordVectorizer.train();
-//        Word2Vec w2v = WordVectorSerializer.readWord2VecModel("saved assets/word2vec.dat");
+        WordVectorizer.train();
+//        WordVectors w2v = WordVectorSerializer.readWord2VecModel(new File("saved assets/word2vec.dat"));
         Word2Vec w2v = WordVectorSerializer.loadFullModel("saved assets/w2v.vec");
 //        WordVectorizer.test(w2v,"sedih");
 
-//        Classification classification = new Classification.Builder()
-//                .word2Vec(w2v)
-//                .build();
-//
-//        classification.train();
+        Classification classification = new Classification.Builder()
+                .word2Vec(w2v)
+                .build();
+
+        classification.train();
         ComputationGraph classifier = ComputationGraph.load(new File("saved assets/classification_model"), true);
         List<String> sentences = new ArrayList<>();
-        sentences.add("Ya Allah murahkan rezeki ");
-        sentences.add("Hilang nyawaku aku tgk");
-        sentences.add("Duuhhh,,,,ini apaan sik. Eklusivisme bgt, sama2 pingin shalat aja seolah mereka enggan bercampur dgn yg tdk sepenam https://t.co/aQU2bDOS5e");
-//        sentences.add("menyesal nda ambil postpaid maxis dlu");
-//        sentences.add("Jae baik banget ya, gitar dia kasihin ke McKay. Bestfriend, best supporter ini mah");
-//        sentences.add("GLUCELLA @ Stem Cell terbaik &amp; Jadi RAHASIA Kecantikan kulit anda. MAU CANTIK GAK PERLU MAHAL INFO/ORDER BBM 59EB7F https://t.co/z9MGylJhIe");
-//        sentences.add("salam jumaat\n#fridayPrayer (@ Masjid Dato' Hj Kamaruddin in Petaling Jaya, Selangor) https://t.co/5beOWCB4LC");
-//        sentences.add("Lelaki kali time tengah gaduh en memang senang tidur ek");
-//        sentences.add("@nunaasptn selamat kan jiwa humor");
+        sentences.add("CEWEK CANTIK MASTURBASI SAMPE LEMAS  Gai18 8 min https://t.co/xtPRF8gvQJ");
+        sentences.add("@kaesangp APAKAH SAYA FANTASTIS KARENA SERING MINUM F*NTA?");
+        sentences.add("Sahabat, yuk isi paket data Indosat Ooredoo-mu melalui #mandirionline atau #mandiriatm. Ada bonus ekstra kuota 5GB https://t.co/CU7x8tGpBs");
+        sentences.add("Waktunya Redeem nih  lumayan banget kan cuma modal main hape doang  Jangan lupa download aplikasi Cashpop lalu https://t.co/EERA3Fg5im");
+        sentences.add("Memutihkan Ketiak dan Selangkangan Cuma pakai 2 bahan aja Begini Caranya https://t.co/QTbxDuxRUk");
+        sentences.add("#JusticeForAudrey keadilan untuk Audrey");
+
+        sentences.add("etikcom Air liur anjing itu najis muhaladoh ( sngt kuat ) dan hrs dihindari. Jk terkena najis air liur anjing, ha https://t.co/ond6heiJmW");
+        sentences.add("@izzsani @heunorass Ni dkt wangsa walk ni. Kalau aku dpt ni aku smack down dedua");
+        sentences.add("2 hari peti sejuk kasi perengat untong sangat. https://t.co/jsllfCADFk");
+        sentences.add("Aku dah la tengah lapar. AARGGHHHH!!");
+        sentences.add("Ya allah malas nya aku nak studyyy");
 
         for (String s : sentences) {
             double result = sentimentAnalysis(w2v, classifier, s);
-            System.out.println(result > 0 ? "Positive" : "Negative" + "\n");
+            System.out.println(result > 0 ? "Positive" : "Negative" + "\n\n");
         }
-
-
-//        double result = Classification.test(w2v, "tiktok diciptakan untuk memutuskan urat malu umat manusia", classifier);
-//
-
-
-//        Clustering.clusterTrain(w2v, 2, 30);
-//        List<Point> centroids = SerializationUtils.readObject(new File("saved assets/cluster.dat"));
-////        TfidfVectorizer.tfidfTrain();
-//        VocabCache vocabCache = WordVectorSerializer.readVocabCache(new File("saved assets/tfidfVectorizer.dat"));
-////
-
-////
-//        for (String s : sentences) {
-//            System.out.println(SentimentAnalysis.sentimentAnalysis(s, w2v, centroids, vocabCache));
-//        }
 
     }
 

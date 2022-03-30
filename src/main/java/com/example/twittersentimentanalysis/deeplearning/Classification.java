@@ -3,6 +3,7 @@ package com.example.twittersentimentanalysis.deeplearning;
 import org.deeplearning4j.iterator.CnnSentenceDataSetIterator;
 import org.deeplearning4j.iterator.LabeledSentenceProvider;
 import org.deeplearning4j.iterator.provider.CollectionLabeledSentenceProvider;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.graph.MergeVertex;
@@ -19,10 +20,13 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.iterator.KFoldIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.regularization.L2Regularization;
+import org.nd4j.linalg.learning.regularization.Regularization;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,16 +41,17 @@ public class Classification {
 
     private static final Logger logger = LoggerFactory.getLogger(Classification.class);
 
+    // Hyper parameters
     private static final long SEED = 239;
-    private static final double LEARNING_RATE = 0.01;
+    private static final double LEARNING_RATE = 0.001;
     private static final int SENTENCE_LENGTH = 100;
     private static final int BATCH_SIZE = 200;
     private static final int VECTOR_SIZE = 400;
     private static final int FEATURES_MAPS = 100;
-    private static final int EPOCH = 20;
+    private static final int EPOCH = 10;
     private static final int OUTPUT = 2;
 
-    private final Word2Vec w2v;
+    private final WordVectors w2v;
     private final ComputationGraph classifier;
     private final String text;
 
@@ -54,44 +59,6 @@ public class Classification {
         this.w2v = builder.w2v;
         this.classifier = builder.classifier;
         this.text = builder.text;
-    }
-
-    private static CollectionLabeledSentenceProvider readSentencesFromFiles() {
-        logger.info("Dataset reading...");
-        String directory = "saved assets/Classification Dataset/Train";
-
-        File datasetSource = new File(directory);
-
-        String[] files = datasetSource.list();
-
-        List<String> sentences = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
-
-        int fileIndex = 0;
-
-        for (String file : files) {
-
-            logger.info("Reading file - " + (fileIndex + 1));
-
-            try (BufferedReader reader = new BufferedReader(new FileReader(directory + "/" + file))) {
-
-                String currLine;
-
-                while ((currLine = reader.readLine()) != null) {
-                    sentences.add(currLine);
-                    labels.add(Integer.toString(fileIndex));
-                }
-
-            } catch (IOException e) {
-                logger.error(e.getMessage());
-            }
-
-            fileIndex++;
-
-        }
-
-        return new CollectionLabeledSentenceProvider(sentences, labels);
-
     }
 
     public void train() throws IOException {
@@ -103,7 +70,7 @@ public class Classification {
                 .activation(Activation.LEAKYRELU)
                 .updater(new Adam(LEARNING_RATE))
                 .convolutionMode(ConvolutionMode.Same)
-                .l2(0.0001)
+                .l2(0.00001)
                 .graphBuilder()
                 .addInputs("input")
                 .addLayer("cnn3", new ConvolutionLayer.Builder()
@@ -142,34 +109,31 @@ public class Classification {
         ComputationGraph model = new ComputationGraph(config);
         model.init();
 
-        logger.info("Loading words vectors...");
+        logger.info("Loading dataset...");
 
         DataSetIterator trainIter = getDataSetIterator(true);
-
-        System.out.println(trainIter.next().getFeatures().shape()[0]);
-        System.out.println(trainIter.next().getFeatures().shape()[1]);
-        System.out.println(trainIter.next().getFeatures().shape()[2]);
-        System.out.println(trainIter.next().getFeatures().shape()[3]);
+        DataSetIterator testIter = getDataSetIterator(false);
 
         logger.info("Training..");
         model.addListeners(new ScoreIterationListener(1));
 
         model.fit(trainIter, EPOCH);
 
-        Evaluation evaluation = model.evaluate(trainIter);
-        System.out.println(evaluation.stats());
+        logger.info("Evaluation");
+        Evaluation evalTrain = model.evaluate(trainIter);
+        Evaluation evalTest = model.evaluate(testIter);
+
+        System.out.println(evalTrain.stats());
+        System.out.println(evalTest.stats());
 
         logger.info("Saving model...");
-
         model.save(new File("saved assets/classification_model"));
     }
 
     public double test() throws IOException {
 
-//        DataSetIterator iterator = getDataSetIterator(false);
-
         TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
-        List<String> tokens = tokenizerFactory.create(text).getTokens();
+        List<String> tokens = tokenizerFactory.create(DataProcessing.stringProcess(text)).getTokens();
         List<String> filteredTokens = new ArrayList<>();
 
         for (String token : tokens) {
@@ -187,17 +151,16 @@ public class Classification {
                 features.put(new INDArrayIndex[]{NDArrayIndex.point(a), NDArrayIndex.point(0), NDArrayIndex.all(), NDArrayIndex.point(b)}, vector);
             }
         }
-
-
+//        DataSetIterator testIter = getDataSetIterator(true);
+//        INDArray features = ((CnnSentenceDataSetIterator)testIter).loadSingleSentence(DataProcessing.stringProcess(text));
         INDArray result = classifier.outputSingle(features);
-//        List<String> labels = iterator.getLabels();
-        String[] labels = new String[]{"Negative", "Positive"};
 
+        String[] labels = new String[]{"Negative", "Positive"};
 
         List<Double> scores = new ArrayList<>();
 
         for (int i = 0; i < labels.length; i++) {
-            System.out.println(labels[i] + ": " + result.getDouble(i));
+//            System.out.println(labels[i] + ": " + result.getDouble(i));
             scores.add(result.getDouble(i));
         }
 
@@ -207,7 +170,7 @@ public class Classification {
 
     private DataSetIterator getDataSetIterator(boolean isTrain) {
 
-        LabeledSentenceProvider labeledSentenceProvider = readSentencesFromFiles();
+        LabeledSentenceProvider labeledSentenceProvider = readSentencesFromFiles(isTrain);
 
         return new CnnSentenceDataSetIterator.Builder(CnnSentenceDataSetIterator.Format.CNN2D)
                 .sentenceProvider(labeledSentenceProvider)
@@ -219,12 +182,57 @@ public class Classification {
 
     }
 
+    private CollectionLabeledSentenceProvider readSentencesFromFiles(boolean isTrain) {
+
+        String directory;
+        if (isTrain) {
+            logger.info("Training set reading...");
+            directory = "saved assets/Classification Dataset/Train";
+        } else {
+            logger.info("Testing set reading...");
+            directory = "saved assets/Classification Dataset/Test";
+        }
+
+        File datasetSource = new File(directory);
+
+        String[] files = datasetSource.list();
+
+        List<String> sentences = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+
+        int fileIndex = 0;
+
+        for (String file : files) {
+
+            logger.info("Reading file - " + (fileIndex + 1));
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(directory + "/" + file))) {
+
+                String currLine;
+
+                while ((currLine = reader.readLine()) != null) {
+                    sentences.add(DataProcessing.stringProcess(currLine));
+                    labels.add(Integer.toString(fileIndex));
+                }
+
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
+
+            fileIndex++;
+
+        }
+
+        return new CollectionLabeledSentenceProvider(sentences, labels);
+
+    }
+
     public static class Builder {
-        private Word2Vec w2v;
+        private WordVectors w2v;
         private ComputationGraph classifier;
         private String text;
 
-        public Builder word2Vec(Word2Vec w2v) {
+        public Builder word2Vec(WordVectors w2v) {
             this.w2v = w2v;
             return this;
         }

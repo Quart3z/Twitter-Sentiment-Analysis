@@ -39,7 +39,7 @@ public class WordVectorizer {
 
         List<String> stopwords = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("saved assets/stopwords"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("saved assets/Sentences Collection/stopwords"))) {
 
             String currLine;
 
@@ -58,7 +58,7 @@ public class WordVectorizer {
     public static Word2Vec train() throws IOException {
 
         logger.info("Dataset reading...");
-        SentenceIterator iterator = new LineSentenceIterator(new File("saved assets/sentences.txt"));
+        SentenceIterator iterator = new LineSentenceIterator(new File("saved assets/Sentences Collection/sentences.txt"));
 
         iterator.setPreProcessor(new SentencePreProcessor() {
             @Override

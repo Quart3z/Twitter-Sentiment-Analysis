@@ -52,7 +52,6 @@ public class Controllers {
 
         logger.info("Started...");
 
-        // Pass to model
         ObjectMapper mapper = new ObjectMapper();
         return this.webClient
                 .get()
@@ -67,6 +66,7 @@ public class Controllers {
                         Tweet tweet = mapper.readValue(message, Tweet.class);
                         String text = DataProcessing.stringProcess(tweet.getText());
 
+                        // Sentiment analysis
                         double score_classification = SentimentAnalysis.sentimentAnalysis(w2vModel, classifier, text);
 
                         ObjectWriter writer = mapper.writerFor(Tweet.class).withAttribute("score", score_classification);
