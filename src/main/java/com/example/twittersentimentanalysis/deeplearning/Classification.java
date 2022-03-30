@@ -11,10 +11,17 @@ import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.text.tokenization.tokenizer.Tokenizer;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.cpu.nativecpu.NDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
@@ -32,11 +39,11 @@ public class Classification {
 
     private static final long SEED = 239;
     private static final double LEARNING_RATE = 0.01;
-    private static final int SENTENCE_LENGTH = 15;
+    private static final int SENTENCE_LENGTH = 100;
     private static final int BATCH_SIZE = 200;
     private static final int VECTOR_SIZE = 400;
-    private static final int DEPTH = 300;
-    private static final int EPOCH = 15;
+    private static final int FEATURES_MAPS = 100;
+    private static final int EPOCH = 20;
     private static final int OUTPUT = 2;
 
     private final Word2Vec w2v;
@@ -49,7 +56,9 @@ public class Classification {
         this.text = builder.text;
     }
 
-    private static CollectionLabeledSentenceProvider readSentencesFromFiles(String directory) {
+    private static CollectionLabeledSentenceProvider readSentencesFromFiles() {
+        logger.info("Dataset reading...");
+        String directory = "saved assets/Classification Dataset/Train";
 
         File datasetSource = new File(directory);
 
@@ -100,17 +109,20 @@ public class Classification {
                 .addLayer("cnn3", new ConvolutionLayer.Builder()
                         .kernelSize(3, VECTOR_SIZE)
                         .stride(1, VECTOR_SIZE)
-                        .nOut(DEPTH)
+                        .nIn(1)
+                        .nOut(FEATURES_MAPS)
                         .build(), "input")
                 .addLayer("cnn4", new ConvolutionLayer.Builder()
                         .kernelSize(4, VECTOR_SIZE)
                         .stride(1, VECTOR_SIZE)
-                        .nOut(DEPTH)
+                        .nIn(1)
+                        .nOut(FEATURES_MAPS)
                         .build(), "input")
                 .addLayer("cnn5", new ConvolutionLayer.Builder()
                         .kernelSize(5, VECTOR_SIZE)
                         .stride(1, VECTOR_SIZE)
-                        .nOut(DEPTH)
+                        .nIn(1)
+                        .nOut(FEATURES_MAPS)
                         .build(), "input")
                 .addVertex("merge", new MergeVertex(), "cnn3", "cnn4", "cnn5")
                 .addLayer("globalPool", new GlobalPoolingLayer.Builder()
@@ -120,6 +132,7 @@ public class Classification {
                 .addLayer("out", new OutputLayer.Builder()
                         .lossFunction(LossFunctions.LossFunction.MCXENT)
                         .activation(Activation.SOFTMAX)
+                        .nIn(3 * FEATURES_MAPS)
                         .nOut(OUTPUT)    // 2 classes: positive or negative
                         .build(), "globalPool")
                 .setOutputs("out")
@@ -131,7 +144,12 @@ public class Classification {
 
         logger.info("Loading words vectors...");
 
-        DataSetIterator trainIter = getDataSetIterator();
+        DataSetIterator trainIter = getDataSetIterator(true);
+
+        System.out.println(trainIter.next().getFeatures().shape()[0]);
+        System.out.println(trainIter.next().getFeatures().shape()[1]);
+        System.out.println(trainIter.next().getFeatures().shape()[2]);
+        System.out.println(trainIter.next().getFeatures().shape()[3]);
 
         logger.info("Training..");
         model.addListeners(new ScoreIterationListener(1));
@@ -148,16 +166,38 @@ public class Classification {
 
     public double test() throws IOException {
 
-        DataSetIterator iterator = getDataSetIterator();
-        INDArray features = ((CnnSentenceDataSetIterator) iterator).loadSingleSentence(text);
+//        DataSetIterator iterator = getDataSetIterator(false);
+
+        TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
+        List<String> tokens = tokenizerFactory.create(text).getTokens();
+        List<String> filteredTokens = new ArrayList<>();
+
+        for (String token : tokens) {
+            if (w2v.hasWord(token)) {
+                filteredTokens.add(token);
+            }
+        }
+
+        int outputLength = Math.max(filteredTokens.size(), SENTENCE_LENGTH);
+        INDArray features = Nd4j.create(BATCH_SIZE, 1, VECTOR_SIZE, outputLength);
+
+        for (int a = 0; a < BATCH_SIZE; a++) {
+            for (int b = 0; b < filteredTokens.size() && b < SENTENCE_LENGTH; b++) {
+                INDArray vector = w2v.getWordVectorMatrix(filteredTokens.get(b));
+                features.put(new INDArrayIndex[]{NDArrayIndex.point(a), NDArrayIndex.point(0), NDArrayIndex.all(), NDArrayIndex.point(b)}, vector);
+            }
+        }
+
 
         INDArray result = classifier.outputSingle(features);
-        List<String> labels = iterator.getLabels();
+//        List<String> labels = iterator.getLabels();
+        String[] labels = new String[]{"Negative", "Positive"};
+
 
         List<Double> scores = new ArrayList<>();
 
-        for (int i = 0; i < labels.size(); i++) {
-            System.out.println(labels.get(i) + ": " + result.getDouble(i));
+        for (int i = 0; i < labels.length; i++) {
+            System.out.println(labels[i] + ": " + result.getDouble(i));
             scores.add(result.getDouble(i));
         }
 
@@ -165,10 +205,9 @@ public class Classification {
 
     }
 
-    private DataSetIterator getDataSetIterator() {
-        logger.info("Dataset reading...");
+    private DataSetIterator getDataSetIterator(boolean isTrain) {
 
-        LabeledSentenceProvider labeledSentenceProvider = readSentencesFromFiles("saved assets/Classification Dataset/Train");
+        LabeledSentenceProvider labeledSentenceProvider = readSentencesFromFiles();
 
         return new CnnSentenceDataSetIterator.Builder(CnnSentenceDataSetIterator.Format.CNN2D)
                 .sentenceProvider(labeledSentenceProvider)
@@ -177,6 +216,7 @@ public class Classification {
                 .maxSentenceLength(SENTENCE_LENGTH)
                 .useNormalizedWordVectors(false)
                 .build();
+
     }
 
     public static class Builder {
@@ -201,7 +241,6 @@ public class Classification {
 
         public Classification build() {
             Classification classification = new Classification(this);
-//            validateObject(classification);
             return classification;
         }
     }
