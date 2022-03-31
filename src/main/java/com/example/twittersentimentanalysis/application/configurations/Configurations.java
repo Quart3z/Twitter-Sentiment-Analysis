@@ -5,9 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
+import reactor.netty.http.client.HttpClient;
+
+import java.time.Duration;
 
 
 @Configuration
@@ -23,14 +27,16 @@ public class Configurations {
 
         logger.info("Config");
 
+        HttpClient client = HttpClient.create().responseTimeout(Duration.ofSeconds(5));
+
         return WebClient.builder()
                 .defaultHeaders(httpHeaders -> {
                     httpHeaders.set("Authorization", "Bearer " + TOKEN);
-                    httpHeaders.set("Retry-After", "300000");
+                    httpHeaders.set("Retry-After", "100000");
                 })
                 .baseUrl(ENDPOINT)
+//                .clientConnector(new ReactorClientHttpConnector(client))
                 .build();
-
     }
 
     @Bean

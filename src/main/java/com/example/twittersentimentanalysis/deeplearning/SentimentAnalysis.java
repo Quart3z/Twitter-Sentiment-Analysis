@@ -54,35 +54,39 @@ public class SentimentAnalysis {
     }
 
     public static void main(String[] args) throws IOException {
-        WordVectorizer.train();
+//        WordVectorizer.train();
 //        WordVectors w2v = WordVectorSerializer.readWord2VecModel(new File("saved assets/word2vec.dat"));
-        Word2Vec w2v = WordVectorSerializer.loadFullModel("saved assets/w2v.vec");
+//        Word2Vec w2v = WordVectorSerializer.loadFullModel("saved assets/w2v.vec");
 //        WordVectorizer.test(w2v,"sedih");
 
-        Classification classification = new Classification.Builder()
-                .word2Vec(w2v)
-                .build();
-
-        classification.train();
-        ComputationGraph classifier = ComputationGraph.load(new File("saved assets/classification_model"), true);
-        List<String> sentences = new ArrayList<>();
-        sentences.add("CEWEK CANTIK MASTURBASI SAMPE LEMAS  Gai18 8 min https://t.co/xtPRF8gvQJ");
-        sentences.add("@kaesangp APAKAH SAYA FANTASTIS KARENA SERING MINUM F*NTA?");
-        sentences.add("Sahabat, yuk isi paket data Indosat Ooredoo-mu melalui #mandirionline atau #mandiriatm. Ada bonus ekstra kuota 5GB https://t.co/CU7x8tGpBs");
-        sentences.add("Waktunya Redeem nih  lumayan banget kan cuma modal main hape doang  Jangan lupa download aplikasi Cashpop lalu https://t.co/EERA3Fg5im");
-        sentences.add("Memutihkan Ketiak dan Selangkangan Cuma pakai 2 bahan aja Begini Caranya https://t.co/QTbxDuxRUk");
-        sentences.add("#JusticeForAudrey keadilan untuk Audrey");
-
-        sentences.add("etikcom Air liur anjing itu najis muhaladoh ( sngt kuat ) dan hrs dihindari. Jk terkena najis air liur anjing, ha https://t.co/ond6heiJmW");
-        sentences.add("@izzsani @heunorass Ni dkt wangsa walk ni. Kalau aku dpt ni aku smack down dedua");
-        sentences.add("2 hari peti sejuk kasi perengat untong sangat. https://t.co/jsllfCADFk");
-        sentences.add("Aku dah la tengah lapar. AARGGHHHH!!");
-        sentences.add("Ya allah malas nya aku nak studyyy");
-
-        for (String s : sentences) {
-            double result = sentimentAnalysis(w2v, classifier, s);
-            System.out.println(result > 0 ? "Positive" : "Negative" + "\n\n");
-        }
+//        Classification classification = new Classification.Builder()
+//                .word2Vec(w2v)
+//                .build();
+//
+//        classification.train();
+//        ComputationGraph classifier = ComputationGraph.load(new File("saved assets/classification_model"), true);
+//        List<String> sentences = new ArrayList<>();
+//        sentences.add("Kejadian kira-kira pukul 11.40 pagi itu berlaku apabila kereta jenis Perodua Myvi dikatakan hilang kawalan lalu mas https://t.co/18Ys0kkYwz");
+//        sentences.add("Sumpah penat kalau mcm ni je dri dulu !");
+//        sentences.add("Ni kalau pergi klinik pastu kena marah lagi ngan dr sebab x gheti nak tido.");
+//        sentences.add("@rmolco Candi borobudur , gak di klaim pak? Museum tsunami pak?");
+//        sentences.add("@MiharuKenshin Sama level bodoh dgn you know who. Level taksub");
+//        sentences.add("enaknya jadi jomblo itu ya bayar makanan atau minuman 2, dapetnya ya 2, paham ?");
+//        sentences.add("Kyk gini kok jd Menteri.");
+//        sentences.add(" Aduh rindu bae lah. Tapi semalam baru habiskan masa berlari dkt aeon big sbb takut mr diy dah tutup.");
+//        sentences.add("Kepala aku nak pecah je ni ya Allah");
+//        sentences.add("W pengen mekap tapi gatau caranya, gatau bahannya, mereknya, bagusan yang mana, manfaatnya &amp; blablabla\nKuota habis https://t.co/XsUTcAClPV");
+//        sentences.add("Nak tapi tak mampu ");
+//
+//        sentences.add("Congrats to Governor Nasir Ahmed El-Rufai @elrufai and Deputy Governor Dr. Hadiza Sabuwa Balarabe @DrHadiza. Allah ya taya ku riko. https://t.co/FqzHWSighK");
+//        sentences.add("sesiapa mencari tempat tshirt printing sekitar Shah Alam / Klang ? dengan kuantiti yang banyak dan murah ? boleh PM https://t.co/rT0iPJ6Pc");
+//        sentences.add("selama ini aku naik bis, baru td dapet pengamen yg genjrengan gitar dan suaranya enak:') jujur terharu");
+//        sentences.add("Kalau hadiahkan kat adik mesti dia");
+//
+//        for (String s : sentences) {
+//            double result = sentimentAnalysis(w2v, classifier, s);
+//            System.out.println(result > 0 ? "Positive" : "Negative");
+//        }
 
     }
 

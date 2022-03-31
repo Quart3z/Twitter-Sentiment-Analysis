@@ -9,60 +9,50 @@
 </head>
 
 <style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: 20% 80%;
+    }
+
+    .legend {
+        width: 100%;
+    }
+
+    .color_guide {
+        font-size: 15px;
+        padding: 15px;
+
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        background-image: linear-gradient(to right, #AB8B0D, #F8DA62);
+    }
+
     .btn {
-        background-color: #7FBCBE;
+        background-color: #f4da71;
         border: 0px;
         border-radius: 50%;
         padding: 15px;
-        color: white;
+        color: #ffffff;
         position: fixed;
-        top: 5%;
+        bottom: 5%;
         left: 2%;
         width: 70px;
         height: 70px;
     }
 
     .content {
-        display: grid;
-        grid-template-columns: 50% 50%;
+        display: flex;
+        flex-direction: column;
+        /*grid-template-columns: 50% 50%; */
     }
 
     .btn:active {
-        background-color: #629799;
-    }
-
-    .column-content {
-        background-color: aliceblue;
-        height: fit-content;
-        padding: 10px;
-        display;
-    }
-
-    .card {
-        box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.4);
-        margin: 15px;
-        width: 500px;
-
-        margin-right: auto;
-        margin-left: auto;
-
-        display: grid;
-        grid-template-columns: 20% 80%;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
-    }
-
-    .card_content {
-        padding: 15px;
-        display: flex;
-        align-items: center;
-    }
-
-    .tag {
-        display: flex;
-        justify-content: center;
-        color: white;
-        font-size: 13px;
+        background-color: #aa8c13;
     }
 
 
@@ -76,16 +66,134 @@
         margin: auto;
         height: 70px;
     }
+
+    .dot {
+        height: 15px;
+        width: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        transform: translate(-50%, 0);
+        left: 50%;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .modal_container {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal {
+        width: 80%;
+        background-color: white;
+        width: 500px;
+
+        position: relative;
+        transform: translate(-50%, 0);
+        top: 30%;
+        left: 50%;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal_header {
+        text-align: end;
+        padding: 10px;
+    }
+
+    .modal_header span {
+        cursor: pointer;
+    }
+
+    .modal_content {
+        display: grid;
+        grid-template-columns: 20% 80%;
+        font-size: 15px;
+    }
+
+    .score_tag {
+        margin: auto;
+    }
+
+    .text_tag {
+        padding: 15px;
+    }
+
+    .tooltip {
+        visibility: hidden;
+        position: absolute;
+        z-index: 1;
+        bottom: 150%;
+        left: 50%;
+        width: 50px;
+        margin-left: -30px;
+        padding: 5px;
+        text-align: center;
+        border-radius: 50px;
+        font-size: 15px;
+    }
+
+    .dot:hover .tooltip {
+        visibility: visible;
+        border: 2px solid black;
+        background-color: white;
+    }
+
+    .dot .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: black transparent transparent transparent;
+    }
 </style>
 
 <body>
-    <button class="btn" id="start">Start</button>
-    <div class="content" id="content">
-        <div id="negative-content">
+    <div class="container">
+        <div class="sidebar">
+            <button class="btn" id="start">Start</button>
         </div>
-        <div id="positive-content">
+        <div class="visualization">
+            <div class="legend">
+                <div class="color_guide">
+                    <span style="color:white">Negative</span>
+                    <span>Positive</span>
+                </div>
+            </div>
+
+
+            <div class="content" id="content">
+                <!-- <div class='dot' id=" + data.id + " style="background-color: red;">
+                    <span class='tooltip'></span>
+                    <input type='hidden' class='score'>
+                    <input type='hidden' class='text'>
+                </div> -->
+            </div>
+
+            <div class="modal_container" id="modal_container">
+                <div class="modal">
+                    <div class="modal_header" id="modal_header"><span id="close">✖</span></div>
+                    <div class="modal_content">
+                        <div class="score_tag" id="score_tag"></div>
+                        <div class="text_tag" id="text_tag"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
     <img id="loading" class="loading" src="D:\Project\Work\TweetsClassifier\saved assets\loading.gif">
 </body>
 
@@ -96,7 +204,6 @@
 
     $("#start").click(function () {
 
-
         var source = new EventSource("tweets/getTweets");
 
 
@@ -106,7 +213,7 @@
             else {
                 console.log(start)
                 start = true;
-                
+
                 source.onmessage = function (event) {
 
                     // $("#loading").hide();
@@ -118,28 +225,19 @@
 
                         console.log(data);
 
-                        let tweetContainer = "<div class='card' id=" + data.id + "></div>"
-                        let color = "";
+                        let dot =
+                            "<div class='dot' id=" + data.id + ">" +
+                            "<span class='tooltip'></span>" +
+                            "<input type='hidden' class='score'>" +
+                            "<input type='hidden' class='text'>" +
+                            "</div>";
 
-
-                        if (data.score >= 0) {
-                            $("#positive-content").append(tweetContainer);
-                            color = "#DC816B";
-                        } else if (data.score <= 0) {
-                            $("#negative-content").append(tweetContainer);
-                            color = "#6BBBDC";
-                        } else {
-                            return;
-                        }
-
-
-                        let tag = "<div class='tag card_content' style='background-color: " + color + ";'>" + data.score.toFixed(3) + "</div>"
-                        let tweet = "<div class='tweet card_content'><p>" + data.text + "</p></div>";
-
-
-                        $("#" + data.id).append(tag);
-                        $("#" + data.id).append(tweet);
-
+                        $("#content").append(dot)
+                        $("#" + data.id).css("left", (50 + data.score * 45) + "%");
+                        $("#" + data.id).css("background-color", "hsl(48, 86%, " + (52 + data.score * 16) + "%)");
+                        $("#" + data.id).find(".tooltip").html(data.score.toFixed(3));
+                        $("#" + data.id).find(".score").val(data.score.toFixed(3));
+                        $("#" + data.id).find(".text").val(data.text);
 
                     } catch (e) {
                         console.log(e)
@@ -150,5 +248,21 @@
             }
         }
 
+    })
+
+    $(document).on("click", ".dot", function () {
+
+        $("#modal_container").show();
+
+
+        $("#modal_header").css("background-color", $(this).css("background-color"))
+        $("#score_tag").html($(this).find(".score").val())
+        $("#text_tag").html($(this).find(".text").val())
+
+    })
+
+
+    $("#close").click(function () {
+        $("#modal_container").hide();
     })
 </script>

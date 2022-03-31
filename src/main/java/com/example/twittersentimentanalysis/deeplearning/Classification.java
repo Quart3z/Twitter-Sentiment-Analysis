@@ -45,10 +45,10 @@ public class Classification {
     private static final long SEED = 239;
     private static final double LEARNING_RATE = 0.001;
     private static final int SENTENCE_LENGTH = 100;
-    private static final int BATCH_SIZE = 200;
+    private static final int BATCH_SIZE = 300;
     private static final int VECTOR_SIZE = 400;
     private static final int FEATURES_MAPS = 100;
-    private static final int EPOCH = 10;
+    private static final int EPOCH = 3;
     private static final int OUTPUT = 2;
 
     private final WordVectors w2v;
@@ -132,6 +132,7 @@ public class Classification {
 
     public double test() throws IOException {
 
+        // Features extraction for input sentence
         TokenizerFactory tokenizerFactory = new DefaultTokenizerFactory();
         List<String> tokens = tokenizerFactory.create(DataProcessing.stringProcess(text)).getTokens();
         List<String> filteredTokens = new ArrayList<>();
@@ -142,17 +143,15 @@ public class Classification {
             }
         }
 
-        int outputLength = Math.max(filteredTokens.size(), SENTENCE_LENGTH);
-        INDArray features = Nd4j.create(BATCH_SIZE, 1, VECTOR_SIZE, outputLength);
+        int outputLength = Math.min(filteredTokens.size(), SENTENCE_LENGTH);
+        INDArray features = Nd4j.create(1, 1, outputLength, VECTOR_SIZE);
 
-        for (int a = 0; a < BATCH_SIZE; a++) {
-            for (int b = 0; b < filteredTokens.size() && b < SENTENCE_LENGTH; b++) {
-                INDArray vector = w2v.getWordVectorMatrix(filteredTokens.get(b));
-                features.put(new INDArrayIndex[]{NDArrayIndex.point(a), NDArrayIndex.point(0), NDArrayIndex.all(), NDArrayIndex.point(b)}, vector);
-            }
+        for (int b = 0; b < filteredTokens.size() && b < SENTENCE_LENGTH; b++) {
+            INDArray vector = w2v.getWordVectorMatrix(filteredTokens.get(b));
+            features.put(new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.point(0), NDArrayIndex.point(b), NDArrayIndex.all()}, vector);
         }
-//        DataSetIterator testIter = getDataSetIterator(true);
-//        INDArray features = ((CnnSentenceDataSetIterator)testIter).loadSingleSentence(DataProcessing.stringProcess(text));
+
+        // Prediction
         INDArray result = classifier.outputSingle(features);
 
         String[] labels = new String[]{"Negative", "Positive"};
@@ -160,7 +159,7 @@ public class Classification {
         List<Double> scores = new ArrayList<>();
 
         for (int i = 0; i < labels.length; i++) {
-//            System.out.println(labels[i] + ": " + result.getDouble(i));
+            System.out.println(labels[i] + ": " + result.getDouble(i));
             scores.add(result.getDouble(i));
         }
 
