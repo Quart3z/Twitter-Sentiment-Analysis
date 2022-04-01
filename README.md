@@ -2,7 +2,7 @@
 
 A simple web application to display real time tweets in Bahasa Malaysia alongside its sentiment score.
 
-![Application preview](https://github.com/Quart3z/Twitter-Sentiment-Analysis/edit/master/screenshot.png)
+![Application preview](https://github.com/Quart3z/Twitter-Sentiment-Analysis/blob/master/screenshot.png)
 
 ## Models
 ### Word2Vec
