@@ -1,6 +1,6 @@
 # Twitter-Sentiment-Analysis
 
-A simple web application to display real time tweets in Bahasa Malaysia alongside its sentiment score.
+A simple sentiment analysis web application with Malay tweets.
 
 ![Application preview](https://github.com/Quart3z/Twitter-Sentiment-Analysis/blob/master/screenshot.png)
 
