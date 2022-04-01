@@ -2,6 +2,8 @@
 
 A simple web application to display real time tweets in Bahasa Malaysia alongside its sentiment score.
 
+![Application preview](https://github.com/Quart3z/Twitter-Sentiment-Analysis/edit/master/screenshot.png)
+
 ## Models
 ### Word2Vec
 A Word2Vec algorithm is a technique used prominently in Natural Language Processing. As a shallow network, it only consists of 2 hidden layers and an output layer: 
