@@ -35,3 +35,8 @@ One of the trade-offs of the model includes using a lower learning rate for the 
 Since F1-score is calculated based on the mean of accuracy and recall of the model, it takes false predictions into account, giving an evaluation on overall predictive performance of the model. As a result, F1-score is more credible in evaluating training models with an imbalanced dataset as it is not biased toward a specific class.
 
 Other relevant metrics such as accuracy are suitable to evaluate the performance of the model. While it measures the rate of correct predictions, its score may not be credible if the dataset is imbalanced. 
+
+---
+
+## Credit
+Malay dataset - https://github.com/huseinzol05/malay-dataset
